@@ -6,6 +6,28 @@
 <title>Eluné Marketing 360 · Gestão de redes, tráfego pago e sites</title>
 <meta name="description" content="Gestão de redes sociais, tráfego pago, sites, landing pages e pacotes avulsos. Posicionamento antes do post, com tudo falando a mesma língua: a da sua marca.">
 <meta name="theme-color" content="#141414">
+<!-- ===== Meta Pixel ===== -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1125011989912536');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1125011989912536&ev=PageView&noscript=1" alt=""></noscript>
+<!-- ===== Fim do Meta Pixel ===== -->
+<!-- ===== Google Analytics 4: cole o seu ID de medição abaixo (ex.: G-ABC123XYZ) ===== -->
+<script>
+window.GA_ID = '';
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+if (window.GA_ID) {
+  var gs=document.createElement('script'); gs.async=true; gs.src='https://www.googletagmanager.com/gtag/js?id='+window.GA_ID; document.head.appendChild(gs);
+  gtag('js', new Date()); gtag('config', window.GA_ID);
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Montserrat:wght@300..800&display=swap" rel="stylesheet">
 <style>
 :root{--black:#141414;--black-2:#1C1C1C;--cream:#F7F5F0;--cream-2:#EFEBE3;--white:#fff;
@@ -622,6 +644,69 @@ document.getElementById('form').addEventListener('submit',function(e){
 var sticky=document.getElementById('sticky');
 addEventListener('scroll',function(){var y=scrollY;sticky.classList.toggle('show',y>innerHeight*.8&&y<document.body.scrollHeight-innerHeight*1.8);},{passive:true});
 document.querySelectorAll('.lg-l,.lg-d').forEach(function(el){el.addEventListener('pointermove',function(e){var r=el.getBoundingClientRect();el.style.setProperty('--mx',(e.clientX-r.left)+'px');el.style.setProperty('--my',(e.clientY-r.top)+'px');});});
+
+
+
+/* ===== Meta Pixel: clique no WhatsApp = Lead =====
+   CAPI_ENDPOINT: endereço da função de servidor que repassa o evento à API de Conversões.
+   Vazio = só o Pixel do navegador. O token NUNCA fica neste arquivo. */
+var CAPI_ENDPOINT = '';
+(function(){
+  function uid(){ try{ if(window.crypto&&crypto.randomUUID) return crypto.randomUUID(); }catch(e){} return 'ev-'+Date.now()+'-'+Math.random().toString(36).slice(2,10); }
+  function cookie(n){ var m=document.cookie.match('(?:^|; )'+n+'=([^;]*)'); return m?decodeURIComponent(m[1]):''; }
+  function nome(a){
+    var t=(a.querySelector&&a.querySelector('span:not(.d)')&&a.classList.contains('wa-fab'))?'Fale no WhatsApp (flutuante)':(a.textContent||'').replace(/\s+/g,' ').trim();
+    if(a.classList.contains('sticky')) t+=' (barra do celular)';
+    if(a.closest('.nav')) t+=' (menu)';
+    if(a.closest('footer')) t+=' (rodapé)';
+    return t||a.getAttribute('aria-label')||'WhatsApp';
+  }
+  function lead(name){
+    var id=uid();
+    try{ if(window.fbq) fbq('track','Lead',{content_name:name},{eventID:id}); }catch(e){}
+    if(CAPI_ENDPOINT){
+      var body=JSON.stringify({event_name:'Lead',event_id:id,content_name:name,event_source_url:location.href,fbp:cookie('_fbp'),fbc:cookie('_fbc')});
+      try{ if(navigator.sendBeacon) navigator.sendBeacon(CAPI_ENDPOINT,new Blob([body],{type:'application/json'})); else fetch(CAPI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:body,keepalive:true}); }catch(e){}
+    }
+  }
+  /* links do WhatsApp abrem em nova aba: o evento é disparado no clique, antes da navegação */
+  document.addEventListener('click',function(e){
+    var a=e.target.closest('a'); if(!a) return;
+    if(/wa\.me\//.test(a.href)) lead(nome(a));
+  },true);
+  /* formulário: dispara o Lead antes do window.open do WhatsApp */
+  var f=document.getElementById('form');
+  if(f) f.addEventListener('submit',function(){ if(f.checkValidity()) lead('Formulário de contato · Enviar e conversar'); },true);
+})();
+
+/* ===== Medição de cliques (Google Analytics) ===== */
+(function(){
+  function ev(name,params){ try{ if(window.GA_ID) gtag('event',name,params||{}); }catch(e){} }
+  function onde(a){
+    if(a.classList.contains('wa-fab')) return 'botao_flutuante';
+    if(a.classList.contains('sticky')) return 'barra_celular';
+    if(a.classList.contains('wa-svc')) return 'servico_'+(a.dataset.svc||'').replace(/\s+/g,'_');
+    if(a.classList.contains('wa-cons')) return 'consultoria';
+    if(a.closest('.nav')) return 'menu';
+    if(a.closest('.hero')) return 'topo';
+    if(a.closest('footer')) return 'rodape';
+    if(a.closest('#contato')) return 'contato_direto';
+    var sec=a.closest('section'); return sec&&sec.id?sec.id:'outro';
+  }
+  document.addEventListener('click',function(e){
+    var a=e.target.closest('a'); if(!a) return;
+    var href=a.getAttribute('href')||'';
+    if(/wa\.me|ig\.me/.test(a.href)) ev('clique_whatsapp',{local:onde(a)});
+    else if(href.charAt(0)==='#'&&href.length>1) ev('clique_navegacao',{destino:href.slice(1),texto:(a.textContent||'').trim().slice(0,40)});
+    else if(/instagram\.com/.test(a.href)) ev('clique_instagram',{local:onde(a)});
+  },true);
+  var f=document.getElementById('form');
+  if(f) f.addEventListener('submit',function(){ var d=new FormData(f); ev('envio_formulario',{interesse:d.get('int')||'',segmento:(d.get('seg')||'').slice(0,40)}); },true);
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(x){ if(x.isIntersecting){ ev('viu_secao',{secao:x.target.id}); io.unobserve(x.target);} });},{threshold:.4});
+    ['servicos','processo','depoimentos','consultoria','sobre','contato'].forEach(function(id){var el=document.getElementById(id); if(el) io.observe(el);});
+  }
+})();
 
 /* three.js: organismo em rede atrás do painel do hero */
 (function(){
