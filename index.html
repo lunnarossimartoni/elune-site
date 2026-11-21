@@ -629,6 +629,8 @@ footer{background:var(--black);color:var(--t3);border-top:1px solid var(--line-d
 /* ===== Coloque aqui o seu WhatsApp (só números, com 55 + DDD). Vazio = abre o direct do Instagram. ===== */
 var WHATSAPP = '5516996227263';
 var INSTAGRAM = 'lunnamartoni';
+/* Planilha que recebe as respostas do formulário (Google Apps Script) */
+var LEAD_WEBHOOK = 'https://script.google.com/macros/s/AKfycbw5dP16AUmhfnXU26Ytwhr_cEJ0Td56DvPxKazMPreSPmSlFSMvqSIkouYzABNXDmpALQ/exec';
 var WA_MSG = 'Oi, Lunna! Vim pelo site e quero saber mais sobre a gestão de redes.';
 var WA_URL = WHATSAPP ? 'https://wa.me/'+WHATSAPP+'?text='+encodeURIComponent(WA_MSG) : 'https://ig.me/m/'+INSTAGRAM;
 document.querySelectorAll('.wa-link').forEach(function(a){a.href=WA_URL;});
@@ -637,6 +639,9 @@ document.querySelectorAll('.wa-cons').forEach(function(a){a.href=WHATSAPP?'https
 setTimeout(function(){var t=document.getElementById('waTip');if(t)t.classList.add('show');},5000);
 document.getElementById('form').addEventListener('submit',function(e){
   e.preventDefault(); var f=new FormData(this);
+  /* salva o lead na planilha "Leads do site · Eluné" antes de abrir o WhatsApp */
+  try{var dados=JSON.stringify({nome:f.get('nome')||'',ig:f.get('ig')||'',seg:f.get('seg')||'',int:f.get('int')||'',pagina:location.href});
+    if(!(navigator.sendBeacon&&navigator.sendBeacon(LEAD_WEBHOOK,new Blob([dados],{type:'text/plain'}))))fetch(LEAD_WEBHOOK,{method:'POST',mode:'no-cors',body:dados});}catch(err){}
   var msg='Oi, Lunna! Vim pelo site.\nNome: '+(f.get('nome')||'')+'\nInstagram: '+(f.get('ig')||'')+'\nSegmento: '+(f.get('seg')||'')+'\nInteresse: '+(f.get('int')||'');
   if(WHATSAPP){window.open('https://wa.me/'+WHATSAPP+'?text='+encodeURIComponent(msg),'_blank');}
   else{try{navigator.clipboard.writeText(msg);}catch(err){} window.open('https://ig.me/m/'+INSTAGRAM,'_blank');}
@@ -650,7 +655,7 @@ document.querySelectorAll('.lg-l,.lg-d').forEach(function(el){el.addEventListene
 /* ===== Meta Pixel: clique no WhatsApp = Lead =====
    CAPI_ENDPOINT: endereço da função de servidor que repassa o evento à API de Conversões.
    Vazio = só o Pixel do navegador. O token NUNCA fica neste arquivo. */
-var CAPI_ENDPOINT = '';
+var CAPI_ENDPOINT = '/api/meta-lead';
 (function(){
   function uid(){ try{ if(window.crypto&&crypto.randomUUID) return crypto.randomUUID(); }catch(e){} return 'ev-'+Date.now()+'-'+Math.random().toString(36).slice(2,10); }
   function cookie(n){ var m=document.cookie.match('(?:^|; )'+n+'=([^;]*)'); return m?decodeURIComponent(m[1]):''; }
